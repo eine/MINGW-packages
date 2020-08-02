@@ -1,0 +1,63 @@
+_realname=gtkwave
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=3.3.105
+pkgrel=1
+pkgdesc='A fully featured GTK+ based wave viewer for Unix, Win32, and Mac OSX'
+arch=('any')
+url='https://gtkwave.sourceforge.io/'
+license=('GPL')
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgname=("gtkwave-gtk3")
+depends=("${MINGW_PACKAGE_PREFIX}-gtk3"
+         "${MINGW_PACKAGE_PREFIX}-tk"
+         "${MINGW_PACKAGE_PREFIX}-tklib-git"
+         "${MINGW_PACKAGE_PREFIX}-tcl"
+         "${MINGW_PACKAGE_PREFIX}-tcllib")
+makedepends=('perlxml' 'intltool')
+source=("https://gtkwave.sourceforge.io/${_realname}-${pkgver}.tar.gz")
+sha256sums=('cf9757055ee3a1c5550cad66da1996e33145f8e13752e1c6ed2299ffb431612f')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  ./autogen.sh
+}
+
+build() {
+  mkdir -p "build-${MINGW_CHOST}"
+  cd "build-${MINGW_CHOST}"
+
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --build=${MINGW_CHOST} \
+    --with-tcl=${MINGW_PREFIX}/lib \
+    --with-tk=${MINGW_PREFIX}/lib \
+    --disable-mime-update \
+    --enable-gtk3
+
+  make
+}
+
+package() {
+  cd "build-${MINGW_CHOST}"
+  make DESTDIR="${pkgdir}" install
+}
+
+post_install() {
+  if [ "${CARCH}" = "i686" ]; then
+    mingw32/bin/gtk-update-icon-cache -q -t -f mingw32/share/icons/hicolor
+  fi
+  if [ "${CARCH}" = "x86_64" ]; then
+    mingw64/bin/gtk-update-icon-cache -q -t -f mingw64/share/icons/hicolor
+  fi
+}
+
+post_upgrade() {
+  post_install
+}
+
+post_remove() {
+  post_install
+}

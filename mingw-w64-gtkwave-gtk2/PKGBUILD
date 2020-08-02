@@ -1,14 +1,14 @@
-# Contributor Ricky Wu <rickleaf.wu@hotmail.com>
-
 _realname=gtkwave
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=3.3.107
-pkgrel=2
-pkgdesc='GTKWave is a fully featured GTK+ based wave viewer for Unix, Win32, and Mac OSX'
+pkgrel=1
+pkgdesc='A fully featured GTK+ based wave viewer for Unix, Win32, and Mac OSX'
 arch=('any')
 url='https://gtkwave.sourceforge.io/'
 license=('GPL')
+provides=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgname=("gtkwave-gtk2")
 depends=("${MINGW_PACKAGE_PREFIX}-gtk2"
          "${MINGW_PACKAGE_PREFIX}-tk"
          "${MINGW_PACKAGE_PREFIX}-tklib"
@@ -46,4 +46,21 @@ build() {
 package() {
   cd "build-${MINGW_CHOST}"
   make DESTDIR="${pkgdir}" install
+}
+
+post_install() {
+  if [ "${CARCH}" = "i686" ]; then
+    mingw32/bin/gtk-update-icon-cache -q -t -f mingw32/share/icons/hicolor
+  fi
+  if [ "${CARCH}" = "x86_64" ]; then
+    mingw64/bin/gtk-update-icon-cache -q -t -f mingw64/share/icons/hicolor
+  fi
+}
+
+post_upgrade() {
+  post_install
+}
+
+post_remove() {
+  post_install
 }
